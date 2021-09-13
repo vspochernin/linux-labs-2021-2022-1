@@ -1,6 +1,1 @@
-grep -E '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' base1.txt > unsorted.txt
-grep -E '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' base2.txt > unsorted.txt
-grep -E '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' base3.txt > unsorted.txt
-grep -E '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' base4.txt > unsorted.txt
-grep -E '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' base5.txt > unsorted.txt
-sort unsorted.txt > sorted.txt
+grep -hoE '^\s+[(\(.*\)).*]/s+$' base1[1-5].txt | grep -Eh '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' | tr [A-Z] [a-z] | uniq | sort > allemails.list
