@@ -1,1 +1,1 @@
-grep -hoE '^\s+[(\(.*\)).*]/s+$'| grep -hoE '' | base1[1-5].txt | grep -Eh '^[A-Za-z0-9_.-]+@[A-Za-z0-9]+\.[A-Za-z]+$' | tr [A-Z] [a-z] | uniq | sort > allemails.list
+grep -Eoh '\S+' base[0-5].txt | grep -Eo '[^()]*' | grep -Eoh '[^:]*' | grep -Eo '[a-Z]([-_.]?[a-Z0-9])+@[a-Z]([-_.]?[a-Z0-9])*[.][a-Z]{2,10}' | tr [A-Z] [a-z] | uniq | sort > allemails.list 
