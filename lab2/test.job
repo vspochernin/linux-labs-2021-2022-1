@@ -1,0 +1,1 @@
+grep -Eoh '\S+' test-base.txt | grep -Eo '[^()]*' | grep -Eoh '[^:]*' | grep -Eox '[a-Z]([-_.]?[a-Z0-9])+@[a-Z]([-_.]?[a-Z0-9])*[.][a-Z]{2,10}' | tr [A-Z] [a-z] > testmails.list 
