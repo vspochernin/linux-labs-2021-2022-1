@@ -1,0 +1,2 @@
+ls file1 file2 3>&2 2>&1 1>&3 | ln > log
+ls file1 file2 2>&1 >/dev/tty | ln > log

@@ -1,0 +1,9 @@
+grep a example.txt | rev
+grep a example.txt | tac
+grep a example.txt | rev | tac
+
+rev - "развернет" каждую строку
+tac - "развернет" сами строки
+	Вместо этого можно было бы написать sort -nr
+		-n - numerical sort (сортировка по номерам строк)
+		-r - reverse order (в обратном порядке)
