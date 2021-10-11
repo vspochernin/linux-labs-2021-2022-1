@@ -20,6 +20,11 @@ then
 		echo "Введено некорректно десятичное число"
 		exit
 	fi
+	if [ $num -gt 524287 ]
+	then
+		echo "Введено слишком большое десятичное число"
+		exit
+	fi
 	power10=1
 	while [ $num -gt 0 ]
 	do
