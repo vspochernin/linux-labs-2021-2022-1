@@ -1,0 +1,239 @@
+\documentclass[a4paper]{article}
+\usepackage[margin=3cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{pgfplots}
+\usepackage{minted}
+\title{Отчёт по лабораторной работе №6\\<<Конфигурация и установка ядра Linux>>}
+\author{
+    Почернин Владислав 3530904/00004
+    \and
+    Разукрантов Владислав 3530904/00004
+    \and
+    Луцай Павел 3530904/00004
+}
+\begin{document}
+    \maketitle
+
+
+    \section{Цель}
+    Получить собранное и запущенное на системе ядро-Linux, при это
+    подсчитать и сравнить время сборки ядра при различном числе потоков сборки.
+
+
+    \section{Задачи}
+    \begin{enumerate}
+        \item Загрузка исходного кода ядра
+        \item Сборка ядра
+        \item Установка ядра
+        \item Проверка правильности установки
+        \item Подсчёт времени сборки при различном числе потоков сборки
+    \end{enumerate}
+
+
+    \section{Аппаратная платформа}
+    Intel(R) Core (TM) i3-6100U CPU @ 2.30GHz
+
+
+    \section{Программная платформа}
+    \begin{itemize}
+        \item ОС Manjaro Linux, ядро:
+        \begin{minted}[frame=single]{text}
+Linux manjaro5.13.19-2-MANJARO #1 SMP PREEMPT Sun Sep 19 21:31:53 UTC 2021
+x86_64 GNU/Linux
+        \end{minted}
+        \item Программы GNU
+    \end{itemize}
+
+
+    \section{Основная часть}
+
+    \subsection{Загрузка исходного кода ядра}
+    \begin{itemize}
+        \item Были установлены исходные коды ядра
+        \begin{minted}[frame=single]{text}
+$ $wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.14.14.tar.xz
+        \end{minted}
+        \item А далее распакованы
+        \begin{minted}[frame=single]{text}
+$ $tar -xvf linux-5.14.14.tar
+        \end{minted}
+    \end{itemize}
+
+    \subsection{Сборка ядра}
+    \begin{itemize}
+        \item Был использован nconfig для конфигурации на основе текущей конфигурации
+        \begin{minted}[frame=single]{text}
+$ zcat /proc/config.gz > .config
+$ make nconfig
+        \end{minted}
+        \item Сборка ядра
+        \begin{minted}[frame=single]{text}
+$ make -j4
+        \end{minted}
+        \item Сборка модулей
+        \begin{minted}[frame=single]{text}
+$ make modules -j4
+        \end{minted}
+    \end{itemize}
+
+    \subsection{Установка ядра}
+    \begin{itemize}
+        \item Готовые файлы ядра были скопированы /boot с помощью
+        \begin{minted}[frame=single]{text}
+$ cp -v arch/x86_64/boot/bzImage /boot/vmlinuz-vlad-x86_648
+        \end{minted}
+        \item Были установлены модули
+        \begin{minted}[frame=single]{text}
+$ make modules_install
+        \end{minted}
+        \item Далее был скопирован существующий и изменен на новый mkinitcpio preset
+        \begin{minted}[frame=single]{text}
+$ cp /etc/mkinitcpio.d/linux.preset /etc/mkinitcpio.d/linuxvlad.preset
+$ vim /etc/mkinitcpio.d/linuxvlad.preset
+        \end{minted}
+        Новый пресет:
+        \begin{minted}[frame=single]{text}
+# mkinitcpio preset file for the 'linux513' package
+
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-vlad-x86_64"
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf"
+default_image="/boot/initramfs-vlad-x86_64.img"
+#default_options=""
+
+#fallback_config="/etc/mkinitcpio.conf"
+fallback_image="/boot/initramfs-vlad-x86_64-fallback.img"
+fallback_options="-S autodetect"
+        \end{minted}
+        \item Был сгенерирован initframs-образ для новго ядра
+        \begin{minted}[frame=single]{text}
+$ mkinitcpio -p linuxvlad
+        \end{minted}
+        \item Был обновлен grub
+        \begin{minted}[frame=single]{text}
+$ sudo update-grub
+        \end{minted}
+    \end{itemize}
+
+    \subsection{Проверка правильности установки}
+    \begin{itemize}
+        \item После перезагрузки системы была выбрана нужная запись (ядро) при загрузке и было проверено,
+        что нужное ядро загрузилось
+        \begin{minted}[frame=single]{text}
+$ uname -a
+Linux manjaro 5.14.14-MANJAROVLAD #4 SMP PREEMPT Mon Nov 8 15:27:27
+MSK 2021 x86_64 GNU/Linux
+        \end{minted}
+    \end{itemize}
+
+    \subsection{Подсчет времени сборки при различном числе потоков сборки}
+    \begin{itemize}
+        \item С помощью сценария была запущена сборка при числе потоков
+        1-9 и было засечено время
+        \begin{minted}[frame=single]{bash}
+#!/bin/bash
+
+for n in {1..17}; do
+  make clean > /dev/null
+  echo потоков: $n
+  time make -j$n > /dev/null
+done
+        \end{minted}
+        \item Были получены следующие результаты работы сценария и построен график
+        \begin{minted}[frame=single]{text}
+потоков: 1
+
+real 32m8,632s
+user 29m14,678s
+sys 2m47,105s
+потоков: 2
+
+real 16m49,228s
+user 30m27,384s
+sys 2m54,495s
+потоков: 3
+
+real 14m55,926s
+user 40m21,668s
+sys 3m38,410s
+потоков: 4
+
+real 13m44,206s
+user 47m41,521s
+sys 4m10,400s
+потоков: 5
+
+real 13m45,481s
+user 47m55,023s
+sys 4m2,264s
+потоков: 6
+
+real 13m46,710s
+user 48m8,534s
+sys 3m55,223s
+потоков: 7
+
+real 13m50,448s
+user 48m15,954s
+sys 3m50,460s
+потоков: 8
+
+real 13m48,022s
+user 48m19,709s
+sys 3m49,043s
+потоков: 9
+
+real 13m48,751s
+user 48m22,022s
+sys 3m48,756s
+        \end{minted}
+
+        \begin{tikzpicture}
+            \begin{axis}[
+                height = 300pt,
+                width = 340pt,
+                xbar,
+                ytick = data,
+                nodes near coords,
+                y dir = reverse,
+                xmin = 0,
+                xmax = 1800,
+                xlabel = {Время сборки, секунды},
+                ylabel = {Число потоков сборки},
+            ]
+                \addplot coordinates {
+                    (1929,1)
+                    (1009,2)
+                    (896,3)
+                    (824,4)
+                    (824,4)
+                    (825,5)
+                    (827,6)
+                    (830,7)
+                    (828,8)
+                    (829,9)
+                };
+            \end{axis}
+        \end{tikzpicture}
+        \item Изначально, время сборки уменьшалось при увеличении количества потоков.
+        Но при числе потоков > 4 время сборки перестало снижаться. Из этого следует, что оптимальное
+        число потоков сборки равно числу потоков используемого процессора.
+    \end{itemize}
+
+
+    \section{Выводы}
+    \begin{itemize}
+        \item Было собрано и запущено ядро, для чего был загружен исходный код ядра,
+        произведена его сборка и установка, проверена правильность установки и
+        подсчитано время сборки при различном числе потоков сборки.
+        \item Одной из возникших трудностей было перемещение скомпилированного ядра в boot, мы
+        предполагали, что это должна сделать команда make install, но все решилось
+        тем, что образ был перемещен вручную.
+        \item На данной системе с четырехпоточным процессором оптимальное число потоков сборки - 4.
+    \end{itemize}
+
+\end{document}
