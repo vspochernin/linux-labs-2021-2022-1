@@ -8,13 +8,14 @@
 void ioctl_write_file(int file_desc, int file_write_desc)
 {
 	char message[80];
-	ssize_t fbytes_read = read(file_write_desc,message,80);
+	// Считали из file_write_desc его сообщение.
+	ssize_t fbytes_read = read(file_write_desc,message,80); // Курсор сдвинулся.
 	if (fbytes_read < 0)
 		{ exit(-1);} else
 	{message[fbytes_read] = '\0';}
 	int ret_val;
-	lseek(file_write_desc,0,SEEK_SET);
-	ret_val = ioctl(file_desc, IOCTL_WRITE_FILE, message);
+	lseek(file_write_desc,0,SEEK_SET); // Перемещаем курсор в начало.
+	ret_val = ioctl(file_desc, IOCTL_WRITE_FILE, message); // Записали сообщение в file_desc.
 
 	if (ret_val < 0) {
 		printf("ioctl_write_file failed:%d\n", ret_val);
@@ -48,13 +49,16 @@ void ioctl_read_file(int file_desc)
 /*
 * Main - Call the ioctl functions
 */
+// По сути - тест.
 int main()
 {
+	// Наши файловые дескрипторы.
 	int file_desc, file_data_desc,file_back_desc,
 	file_forward_desc,ret_val;
 	char *msg = "Message passed by ioctl\n";
 	char *cmp_forw = "direction forward";
 	char *cmp_back = "direction back";
+	// Открываем файлы, создавая файловые дескрипторы.
 	file_desc = open(DEVICE_FILE_NAME, 0);
 	if (file_desc < 0) {
 		printf("Can't open device file: %s\n", DEVICE_FILE_NAME);
@@ -76,24 +80,30 @@ int main()
 		exit(-1);
 	}
 	
+	// Записали и прочитали в файл дату.
 	ioctl_write_file(file_desc, file_data_desc);
 	ioctl_read_file(file_desc);
 	
 	
+	// Записали и прочитали в файл беквард дату.
 	ioctl_write_file(file_desc, file_back_desc);
 	ioctl_read_file(file_desc);	
 
+	// Записали и прочитали в файл форвард дату.
 	ioctl_write_file(file_desc, file_forward_desc);
 	ioctl_read_file(file_desc);
 
 
+	// Очистили файл.
 	ioctl_delete_file(file_desc);
 	ioctl_read_file(file_desc);
 
 	
+	// Снова записали и прочитали дату.
 	ioctl_write_file(file_desc, file_data_desc);
 	ioctl_read_file(file_desc);
 
+	// Закрыли наши файлы.
 	close(file_desc);
 	close(file_data_desc);
 	close(file_back_desc);
